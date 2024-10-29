@@ -2,11 +2,10 @@ name: Deploy Flask App
 
 on:
   push:
-    branches:
-      - main
+    branches: ["master"]
 
 jobs:
-  deploy:
+  deploy-client:
     runs-on: self-hosted
 
     steps:
@@ -20,6 +19,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        cd /var/www/hour-reporter
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
