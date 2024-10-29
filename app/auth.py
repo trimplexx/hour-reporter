@@ -3,25 +3,71 @@ from . import db
 from .models import User
 from flask_login import login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import re
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Logika logowania
-        pass
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
+            flash('Nieprawidłowa nazwa użytkownika lub hasło.', 'error')
+            return redirect(url_for('auth.login'))
+
+        login_user(user)
+        flash('Zalogowano pomyślnie.', 'success')
+        return redirect(url_for('main.index'))
+
     return render_template('auth/login.html')
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Logika rejestracji
-        pass
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Regex do walidacji emaila i hasła
+        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        password_regex = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$'
+
+        if not re.match(email_regex, email):
+            flash('Nieprawidłowy format adresu email.', 'error')
+            return redirect(url_for('auth.register'))
+
+        if not re.match(password_regex, password):
+            flash('Hasło musi mieć co najmniej 8 znaków, zawierać litery i cyfry.', 'error')
+            return redirect(url_for('auth.register'))
+
+        if password != confirm_password:
+            flash('Hasła nie pasują do siebie.', 'error')
+            return redirect(url_for('auth.register'))
+
+        if User.query.filter_by(email=email).first():
+            flash('Email jest już zarejestrowany.', 'error')
+            return redirect(url_for('auth.register'))
+
+        # Haszowanie hasła i tworzenie nowego użytkownika
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_user = User(first_name=first_name, last_name=last_name, email=email, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Konto zostało utworzone. Możesz się zalogować.', 'success')
+        return redirect(url_for('auth.login'))
+
     return render_template('auth/register.html')
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
+    flash('Wylogowano pomyślnie.', 'info')
     return redirect(url_for('auth.login'))

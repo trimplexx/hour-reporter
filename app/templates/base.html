@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hour Reporter{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/custom-colors.css') }}?v=1" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/text-hover.css') }}?v=1" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="bg-neutral-800">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-neutral-700">
+        <div class="container">
+            <a class="navbar-brand text-neutral-50-hover" href="{{ url_for('main.index') }}">Hour Reporter</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link text-neutral-50-hover" href="{{ url_for('auth.logout') }}">Wyloguj</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show bg-neutral-500 font-weight-bold" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close focus-ring-dark btn-outline-dark" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Główna Zawartość -->
+    <div class="container bg-custom-darker p-3 rounded">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

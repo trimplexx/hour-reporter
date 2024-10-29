@@ -1,0 +1,5 @@
+.text-neutral-50-hover:hover {
+    color: #737373; !important;
+    text-decoration: underline;
+    transition: color 0.1s ease, text-decoration 0.1s ease;
+}

@@ -1,5 +1,5 @@
 # Hour Reporter
-
+### Demo: https://hour-reporter.lkrawczyk.pl/
 **Hour Reporter** is a web application for tracking work hours. Users can log their check-in and check-out times, track breaks, and review their work hours history. The project is built using Flask, Bootstrap, and MariaDB.
 
 ## Features
@@ -84,3 +84,11 @@ For automatic reloading during development, set the `FLASK_ENV` environment vari
 export FLASK_ENV=development  # Linux/Mac
 set FLASK_ENV=development     # Windows
 python run.py
+```
+
+## Set up colors palette
+
+```bash
+npm install sass --save-dev
+npm run sass
+```
