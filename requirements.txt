@@ -13,3 +13,4 @@ greenlet==2.0.2
 bcrypt~=4.2.0
 requests~=2.32.3
 holidays<0.59
+pytz~=2024.2

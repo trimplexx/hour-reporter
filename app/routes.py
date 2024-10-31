@@ -1,4 +1,5 @@
 import holidays
+import pytz
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from . import db
@@ -14,7 +15,10 @@ def index():
     today_date = datetime.date.today()
     work_record = WorkHours.query.filter_by(user_id=current_user.id, date=today_date, end_time=None).first()
     is_working = bool(work_record)
-    current_time = datetime.datetime.now().strftime('%H:%M')
+
+    warsaw_tz = pytz.timezone('Europe/Warsaw')
+    current_time = datetime.datetime.now(warsaw_tz).strftime('%H:%M')
+
     course_types = CourseType.query.all()
     return render_template('index.html', is_working=is_working, current_time=current_time, course_types=course_types)
 
