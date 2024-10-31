@@ -1,0 +1,32 @@
+#calendar {
+    height: 100%;
+    color: #f0f0f0;
+    background-color: #2d2d2d;
+    width: 100%;
+    padding: 10px;
+    overflow: auto;
+    min-height: 72vh;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+    color: #f0f0f0;
+}
+
+.fc .fc-timegrid-slot-lane {
+    border-color: #666;
+}
+
+.fc .fc-day-today {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.fc .fc-button {
+    color: #f0f0f0;
+    background-color: #444;
+    border: none;
+}
+
+.fc .fc-button:hover {
+    background-color: #555;
+}

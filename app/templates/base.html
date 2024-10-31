@@ -4,45 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hour Reporter{% endblock %}</title>
+
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/custom-colors.css') }}?v=1" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/text-hover.css') }}?v=1" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/calendar.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/custom-colors.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/text-hover.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/loading.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+
+    <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <script src="{{ url_for('static', filename='js/begin-end-work.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/calendarSetup.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/eventModalHandler.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/deleteEventHandler.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/modalUtils.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/summary.js') }}" type="module"></script>
 </head>
+
 <body class="bg-neutral-800">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg bg-neutral-700">
-        <div class="container">
-            <a class="navbar-brand text-neutral-50-hover" href="{{ url_for('main.index') }}">Hour Reporter</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link text-neutral-50-hover" href="{{ url_for('auth.logout') }}">Wyloguj</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-neutral-700">
+    <div class="container">
+        <a class="navbar-brand text-neutral-50-hover" href="{{ url_for('main.index') }}">Hour Reporter</a>
+        {% if current_user.is_authenticated %}<a class="navbar-brand text-neutral-50-hover"
+                                                 href="{{ url_for('main.summary') }}">Podsumowanie pracy</a> {% endif %}
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link text-neutral-50-hover" href="{{ url_for('auth.logout') }}">Wyloguj</a>
+                    </li>
+                {% endif %}
+            </ul>
         </div>
-    </nav>
-
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show bg-neutral-500 font-weight-bold" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close focus-ring-dark btn-outline-dark" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
     </div>
+</nav>
 
-    <!-- Główna Zawartość -->
-    <div class="container bg-custom-darker p-3 rounded">
-        {% block content %}{% endblock %}
+
+{% include 'work_modal.html' %}
+{% include 'study_modal.html' %}
+{% include 'begin_work_modal.html' %}
+{% include 'end_work_modal.html' %}
+
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'info' if category == 'message' else category }} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close focus-ring-dark btn-outline-dark" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Główna Zawartość -->
+<div class="container bg-custom-darker rounded position-relative">
+    <div id="loadingSpinner" class="spinner-border text-primary position-absolute top-50 start-50 translate-middle"
+         role="status" style="display: none;">
+        <span class="visually-hidden">Ładowanie...</span>
     </div>
+    {% block content %}{% endblock %}
+</div>
+
+
 </body>
 </html>

@@ -1,0 +1,21 @@
+<div class="modal fade" id="beginWorkModal" tabindex="-1" aria-labelledby="beginWorkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-neutral-800 text-light">
+            <div class="modal-header bg-neutral-700 border-0">
+                <h5 class="modal-title" id="beginWorkModalLabel">Rozpocznij Pracę</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-neutral-600">
+                <form id="beginWorkForm" action="{{ url_for('main.begin_work') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="arrivalTime" class="form-label">Godzina rozpoczęcia</label>
+                        <input type="time" class="form-control" name="arrival_time" id="arrivalTime"
+                               value="{{ current_time }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Rozpocznij</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

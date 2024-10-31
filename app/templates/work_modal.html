@@ -1,0 +1,41 @@
+<div class="modal fade" id="workModal" tabindex="-1" aria-labelledby="workModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-neutral-800 text-light">
+            <div class="modal-header bg-neutral-700 border-0">
+                <h5 class="modal-title" id="workModalLabel">Dodaj Godziny Pracy</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-neutral-600">
+                <form id="workForm" action="" method="POST" data-add-endpoint="{{ url_for('main.add_work_hours') }}"
+                      data-update-endpoint="{{ url_for('main.update_work_hours') }}">
+                    <input type="hidden" id="workEventId" name="event_id">
+
+                    <!-- Data i godziny pracy -->
+                    <div class="mb-3">
+                        <label for="workDate" class="form-label text-neutral-200">Data</label>
+                        <input type="date" class="form-control bg-neutral-700 border-0 text-neutral-300" name="date"
+                               id="workDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="startTime" class="form-label text-neutral-200">Godzina Rozpoczęcia</label>
+                        <input type="time" class="form-control bg-neutral-700 border-0 text-neutral-300"
+                               name="start_time" id="startTime" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endTime" class="form-label text-neutral-200">Godzina Zakończenia</label>
+                        <input type="time" class="form-control bg-neutral-700 border-0 text-neutral-300" name="end_time"
+                               id="endTime" required>
+                    </div>
+
+                    <!-- Przycisk wysyłania formularza -->
+                    <button type="submit" class="btn btn-primary bg-blue-600 border-0 mt-3" id="submitStudyForm">
+                        Zapisz
+                    </button>
+
+                    <button type="button" class="btn btn-danger mt-3" id="deleteWorkButton">Usuń</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

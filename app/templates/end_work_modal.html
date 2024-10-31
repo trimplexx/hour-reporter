@@ -1,0 +1,20 @@
+<div class="modal fade" id="endWorkModal" tabindex="-1" aria-labelledby="endWorkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-neutral-800 text-light">
+            <div class="modal-header bg-neutral-700 border-0">
+                <h5 class="modal-title" id="endWorkModalLabel">Zakończ Pracę</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-neutral-600">
+                <form id="endWorkForm" action="{{ url_for('main.end_work') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="endTime" class="form-label">Godzina zakończenia</label>
+                        <input type="time" class="form-control" name="end_time" id="endTime" value="{{ current_time }}">
+                    </div>
+                    <button type="submit" class="btn btn-danger">Zakończ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,11 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Strona Główna - Hour Reporter{% endblock %}
+{% block title %}Harmonogram Tygodniowy{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="text-center mt-5">Welcome to Hour Reporter</h1>
-    <p class="text-center">A simple app to track your work hours.</p>
-    <p class="text-center">Runner Test2.</p>
-</div>
+    <div class="container mt-4">
+        <h2 class="text-center mb-4 text-light">Harmonogram Tygodniowy</h2>
+
+        <div class="d-flex justify-content-center mb-4 gap-2">
+            {% if is_working %}
+                <button id="toggleWorkButton" class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#endWorkModal">
+                    Zakończ pracę
+                </button>
+            {% else %}
+                <button id="toggleWorkButton" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#beginWorkModal">
+                    Rozpocznij pracę
+                </button>
+            {% endif %}
+            <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#workModal">
+                Dodaj Godziny Pracy
+            </button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#studyModal">
+                Dodaj Harmonogram Zajęć
+            </button>
+        </div>
+    </div>
+
+    <div id="calendar" class="bg-neutral-800"></div>
 {% endblock %}
