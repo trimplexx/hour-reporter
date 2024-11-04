@@ -14,6 +14,11 @@
             <a href="{{ url_for('main.summary', month=month + 1 if month < 12 else 1, year=year if month < 12 else year + 1) }}"
                class="btn btn-outline-light">Następny miesiąc &raquo;</a>
         </div>
+        <div class="text-end mt-4">
+<a id="exportPdfBtn" class="btn btn-danger" data-url="{{ url_for('main.export_pdf', month=month, year=year) }}">Eksportuj do PDF</a>
+<a id="exportExcelBtn" class="btn btn-success" data-url="{{ url_for('main.export_excel', month=month, year=year) }}">Eksportuj do Excel</a>
+
+</div>
 
         <!-- Input do stawki godzinowej -->
         <div class="mb-4">

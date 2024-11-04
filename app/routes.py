@@ -1,10 +1,18 @@
 import holidays
 import pytz
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, make_response
 from flask_login import login_required, current_user
 from . import db
 from .models import WorkHours, StudySchedule, CourseType
 import datetime
+from flask import send_file, make_response
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import pandas as pd
+import calendar
+
+from .summary import get_summary_data
 
 main = Blueprint('main', __name__)
 
@@ -29,61 +37,12 @@ def summary():
     month = request.args.get('month', type=int, default=datetime.date.today().month)
     year = request.args.get('year', type=int, default=datetime.date.today().year)
 
-    first_day = datetime.date(year, month, 1)
-    last_day = (first_day.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) - datetime.timedelta(days=1)
-
-    work_records = WorkHours.query.filter(
-        WorkHours.user_id == current_user.id,
-        WorkHours.date >= first_day,
-        WorkHours.date <= last_day
-    ).all()
-
-    work_hours_data = []
-    total_work_hours = 0
-    polish_holidays = holidays.Poland(years=year)
-
-    for day in range(1, last_day.day + 1):
-        date = datetime.date(year, month, day)
-        is_holiday = date in polish_holidays
-        is_weekend = date.weekday() >= 5
-        holiday_name = polish_holidays.get(date) if is_holiday else None
-
-        daily_records = [record for record in work_records if record.date == date]
-        daily_work_hours = sum(
-            (datetime.datetime.combine(date, record.end_time) - datetime.datetime.combine(date,
-                                                                                          record.start_time)).seconds / 3600
-            for record in daily_records if record.end_time
-        )
-
-        # Przeformatuj godziny na format xh ym dla każdego dnia
-        hours = int(daily_work_hours)
-        minutes = int((daily_work_hours - hours) * 60)
-        formatted_work_hours = f"{hours}h {minutes}m" if hours or minutes else "0h 0m"
-
-        total_work_hours += daily_work_hours
-        work_hours_data.append({
-            'date': date,
-            'is_holiday': is_holiday,
-            'is_weekend': is_weekend,
-            'holiday_name': holiday_name,
-            'total_work_hours': daily_work_hours,
-            'formatted_work_hours': formatted_work_hours,
-            'work_records': daily_records
-        })
-
-    # Formatowanie łącznego czasu pracy w formacie xh ym
-    total_hours = int(total_work_hours)
-    total_minutes = int((total_work_hours - total_hours) * 60)
-    formatted_total_work_hours = f"{total_hours}h {total_minutes}m"
-
+    summary_data = get_summary_data(month, year)
     return render_template(
         'summary.html',
-        work_hours_data=work_hours_data,
-        total_work_hours=total_work_hours,
-        formatted_total_work_hours=formatted_total_work_hours,
-        month=month,
-        year=year
+        **summary_data
     )
+
 
 
 @main.route('/begin_work', methods=['POST'])
@@ -229,10 +188,10 @@ def add_study_schedule():
         if date_range:
             try:
                 start_date_str, end_date_str = date_range.split(' - ')
-                start_date = datetime.strptime(start_date_str.strip(), '%Y-%m-%d')
-                end_date = datetime.strptime(end_date_str.strip(), '%Y-%m-%d')
+                start_date = datetime.datetime.strptime(start_date_str.strip(), '%Y-%m-%d')
+                end_date = datetime.datetime.strptime(end_date_str.strip(), '%Y-%m-%d')
 
-                today = datetime.now()
+                today = datetime.datetime.now()
                 one_year_later = today + datetime.timedelta(days=365)
                 one_year_earlier = today - datetime.timedelta(days=365)
 
@@ -286,7 +245,7 @@ def add_study_schedule():
 
         # Dodanie pojedynczych dat
         for date_str in single_dates:
-            date = datetime.strptime(date_str, '%Y-%m-%d')
+            date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
             study_schedule = StudySchedule(
                 user_id=current_user.id,
                 date=date.date(),
@@ -340,7 +299,8 @@ def get_calendar_events():
         work_hours = WorkHours.query.filter(
             WorkHours.user_id == current_user.id,
             WorkHours.date >= start_date,
-            WorkHours.date <= end_date
+            WorkHours.date <= end_date,
+            WorkHours.end_time.isnot(None)
         ).all()
 
         events = []
@@ -569,3 +529,77 @@ def delete_study_schedule():
         flash(f"Błąd podczas usuwania rekordu: {str(e)}", 'danger')
 
     return redirect(url_for('main.index'))
+
+@main.route('/export_pdf')
+@login_required
+def export_pdf():
+    month = request.args.get('month', type=int, default=datetime.date.today().month)
+    year = request.args.get('year', type=int, default=datetime.date.today().year)
+    hourly_rate = request.args.get('hourly_rate', type=float, default=0)
+
+    summary_data = get_summary_data(month, year)
+
+    pdf_buffer = BytesIO()
+    p = canvas.Canvas(pdf_buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 40, f"Podsumowanie godzin pracy - {calendar.month_name[month]} {year}")
+
+    p.setFont("Helvetica", 10)
+    table_y = height - 80
+    p.drawString(50, table_y, "Dzień")
+    p.drawString(150, table_y, "Godziny Pracy")
+    p.drawString(300, table_y, "Zarobek (PLN)")
+
+    for day_data in summary_data['work_hours_data']:
+        table_y -= 20
+        hours_worked = day_data['total_work_hours']
+        earnings = hours_worked * hourly_rate if hourly_rate else 0
+
+        p.drawString(50, table_y, day_data['date'].strftime('%Y-%m-%d'))
+        p.drawString(150, table_y, day_data['formatted_work_hours'])
+        p.drawString(300, table_y, f"{earnings:.2f} PLN")
+
+        # Zapobiegaj wyjściu poza stronę
+        if table_y < 40:
+            p.showPage()
+            p.setFont("Helvetica", 10)
+            table_y = height - 40
+
+    p.showPage()
+    p.save()
+
+    pdf_buffer.seek(0)
+    return send_file(pdf_buffer, as_attachment=True, download_name=f"Podsumowanie_{month}_{year}.pdf", mimetype="application/pdf")
+
+
+@main.route('/export_excel')
+@login_required
+def export_excel():
+    month = request.args.get('month', type=int, default=datetime.date.today().month)
+    year = request.args.get('year', type=int, default=datetime.date.today().year)
+    hourly_rate = request.args.get('hourly_rate', type=float, default=0)
+
+    summary_data = get_summary_data(month, year)
+
+    data = []
+    for day_data in summary_data['work_hours_data']:
+        hours_worked = day_data['total_work_hours']
+        earnings = hours_worked * hourly_rate if hourly_rate else 0
+        data.append({
+            'Dzień': day_data['date'].strftime('%Y-%m-%d'),
+            'Godziny Pracy': day_data['formatted_work_hours'],
+            'Zarobek (PLN)': f"{earnings:.2f}"
+        })
+
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name="Podsumowanie Godzin Pracy")
+
+    writer.close()
+    output.seek(0)
+
+    return send_file(output, as_attachment=True, download_name=f"Podsumowanie_{month}_{year}.xlsx",
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

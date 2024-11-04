@@ -6,8 +6,7 @@ export function deleteEvent(eventId, deleteEndpoint) {
     })
         .then(response => {
             if (response.ok) {
-                calendar.refetchEvents();
-                closeModals();
+                window.location.reload();
             }
         })
         .catch(error => console.error('Błąd:', error));
