@@ -1,18 +1,19 @@
 import holidays
 import pytz
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from . import db
 from .models import WorkHours, StudySchedule, CourseType
 import datetime
-from flask import send_file, make_response
+from flask import send_file
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import pandas as pd
 import calendar
-
+from openpyxl.styles import PatternFill
 from .summary import get_summary_data
+from reportlab.lib import colors
 
 main = Blueprint('main', __name__)
 
@@ -530,6 +531,7 @@ def delete_study_schedule():
 
     return redirect(url_for('main.index'))
 
+
 @main.route('/export_pdf')
 @login_required
 def export_pdf():
@@ -538,6 +540,8 @@ def export_pdf():
     hourly_rate = request.args.get('hourly_rate', type=float, default=0)
 
     summary_data = get_summary_data(month, year)
+    total_hours = sum(day_data['total_work_hours'] for day_data in summary_data['work_hours_data'])
+    total_earnings = total_hours * hourly_rate if hourly_rate else 0
 
     pdf_buffer = BytesIO()
     p = canvas.Canvas(pdf_buffer, pagesize=A4)
@@ -557,22 +561,31 @@ def export_pdf():
         hours_worked = day_data['total_work_hours']
         earnings = hours_worked * hourly_rate if hourly_rate else 0
 
+        if day_data['is_holiday'] or day_data['is_weekend']:
+            p.setFillColor(colors.lightgrey)
+        else:
+            p.setFillColor(colors.black)
+
         p.drawString(50, table_y, day_data['date'].strftime('%Y-%m-%d'))
         p.drawString(150, table_y, day_data['formatted_work_hours'])
         p.drawString(300, table_y, f"{earnings:.2f} PLN")
+        p.setFillColor(colors.black)
 
-        # Zapobiegaj wyjściu poza stronę
         if table_y < 40:
             p.showPage()
             p.setFont("Helvetica", 10)
             table_y = height - 40
 
+    table_y -= 20
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(50, table_y, "Razem")
+    p.drawString(150, table_y, f"{total_hours:.2f}")
+    p.drawString(300, table_y, f"{total_earnings:.2f} PLN")
+
     p.showPage()
     p.save()
-
     pdf_buffer.seek(0)
     return send_file(pdf_buffer, as_attachment=True, download_name=f"Podsumowanie_{month}_{year}.pdf", mimetype="application/pdf")
-
 
 @main.route('/export_excel')
 @login_required
@@ -582,6 +595,8 @@ def export_excel():
     hourly_rate = request.args.get('hourly_rate', type=float, default=0)
 
     summary_data = get_summary_data(month, year)
+    total_hours = sum(day_data['total_work_hours'] for day_data in summary_data['work_hours_data'])
+    total_earnings = total_hours * hourly_rate if hourly_rate else 0
 
     data = []
     for day_data in summary_data['work_hours_data']:
@@ -593,13 +608,34 @@ def export_excel():
             'Zarobek (PLN)': f"{earnings:.2f}"
         })
 
+    data.append({
+        'Dzień': 'Razem',
+        'Godziny Pracy': f"{total_hours:.2f}",
+        'Zarobek (PLN)': f"{total_earnings:.2f}"
+    })
+
     df = pd.DataFrame(data)
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
     df.to_excel(writer, index=False, sheet_name="Podsumowanie Godzin Pracy")
 
+    workbook = writer.book
+    worksheet = writer.sheets["Podsumowanie Godzin Pracy"]
+
+    holiday_fill = PatternFill(start_color="FFFFCC", end_color="FFFFCC", fill_type="solid")
+    weekend_fill = PatternFill(start_color="FFCCCC", end_color="FFCCCC", fill_type="solid")
+
+    for row_idx, day_data in enumerate(summary_data['work_hours_data'], start=2):
+        fill = None
+        if day_data['is_holiday']:
+            fill = holiday_fill
+        elif day_data['is_weekend']:
+            fill = weekend_fill
+
+        if fill:
+            worksheet[f"A{row_idx}"].fill = fill
+
     writer.close()
     output.seek(0)
-
     return send_file(output, as_attachment=True, download_name=f"Podsumowanie_{month}_{year}.xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
