@@ -41,14 +41,15 @@ def register():
         confirm_password = request.form.get('confirm_password')
 
         email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        password_regex = '^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'
+        password_regex = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$'
+
 
         if not re.match(email_regex, email):
             flash('Nieprawidłowy format adresu email.', 'danger')
             return render_template('auth/register.html', first_name=first_name, last_name=last_name, email=email)
 
         if not re.match(password_regex, password):
-            flash('Hasło musi mieć co najmniej 8 znaków, zawierać litery i cyfry.', 'danger')
+            flash('Hasło musi mieć co najmniej 8 znaków, zawierać litery, cyfry oraz znak specjalny.', 'danger')
             return render_template('auth/register.html', first_name=first_name, last_name=last_name, email=email)
 
         if password != confirm_password:
