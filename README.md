@@ -1,94 +1,31 @@
-# Hour Reporter
-### Demo: https://hour-reporter.lkrawczyk.pl/
-**Hour Reporter** is a web application for tracking work hours. Users can log their check-in and check-out times, track breaks, and review their work hours history. The project is built using Flask, Bootstrap, and MariaDB.
+The **Hour Reporter** application is an advanced tool for monitoring professional and academic activities. Built with the **Flask** framework in Python and modern frontend technologies, it offers an intuitive interface for recording and analyzing time spent on work and study. The project was designed with ease of use and automation of reporting processes in mind.
 
-## Features
 
-- User registration and login
-- Recording work hours (check-in, check-out, breaks)
-- Viewing work hours history
+The application provides a set of features that facilitate time management in both professional and educational contexts. A detailed description of its capabilities is presented below.
 
-## Technologies
+### Core Features
 
-- Backend: Python, Flask
-- Frontend: HTML, CSS (Bootstrap)
-- Database: MariaDB
+#### For the User
 
-## Getting Started
+* **Registration and Authentication**: Secure account creation and login using **bcrypt** for password hashing. The system validates data correctness, such as email format and password complexity.
+* **Work Time Logging**:
+    * **Real-Time Timer**: The ability to start and stop work with a single click, which automatically records the current time.
+    * **Manual Hour Entry**: An option to manually add work entries for a specific day and time range, with validation to prevent overlapping entries.
+* **Study Schedule Management**:
+    * **Interactive Calendar**: All entries (work, classes, holidays) are visualized on a calendar (**FullCalendar**) with week and day views.
+    * **Adding Classes**: The ability to add classes for single days or entire date ranges (e.g., "every Monday from-to").
+    * **Detailed Fields**: The user can add optional information, such as instructor's name, room number, week type (even/odd), or class type (lecture, lab).
+* **Work Summary**:
+    * **Monthly Report**: Access to a detailed work summary for a selected month and year.
+    * **Highlighting Days Off**: Weekends and Polish public holidays are automatically marked in the report.
+    * **Earnings Calculation**: The ability to enter an hourly rate to dynamically calculate earnings for individual days and the entire month.
+    * **Data Export**: A feature to export the generated summary to **PDF** and **Excel** files, preserving formatting and calculations.
+* **Editing and Deleting Entries**: Every calendar entry (both work and study) can be edited or deleted directly from the user interface.
 
-### Prerequisites
+### Technical Aspects
 
-- Python 3.8+
-- Pip (Python package manager)
-
-### Installation
-
-1. **Clone the Repository**
-
-    ```bash
-    git clone https://github.com/yourusername/hour-reporter.git
-    cd hour-reporter
-    ```
-
-2. **Create a Virtual Environment**
-
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # Linux/Mac
-    venv\Scripts\activate     # Windows
-    ```
-
-3. **Install Dependencies**
-
-    Make sure to include `PyMySQL` in your `requirements.txt`. If it’s not there, you can manually add it or install it with:
-
-    ```bash
-    pip install PyMySQL
-    pip install -r requirements.txt
-    ```
-
-4. **Configure Environment Variables**
-
-    Create a `.env` file in the project root directory:
-
-    ```plaintext
-    SECRET_KEY=your_secret_key
-    DATABASE_URI=mysql+pymysql://user:your_password_here@localhost/hour_reporter
-    ```
-
-    Replace `your_secret_key` and `your_password_here` with your own secure values.
-
-5. **Set Up the Database**
-
-    Run the following commands to initialize and migrate the database:
-
-    ```bash
-    flask db init
-    flask db migrate -m "Initial migration"
-    flask db upgrade
-    ```
-
-6. **Run the Application**
-
-    ```bash
-    python run.py
-    ```
-
-    Access the application at `http://127.0.0.1:5000`.
-
-### Development Mode
-
-For automatic reloading during development, set the `FLASK_ENV` environment variable:
-
-```bash
-export FLASK_ENV=development  # Linux/Mac
-set FLASK_ENV=development     # Windows
-python run.py
-```
-
-## Set up colors palette
-
-```bash
-npm install sass --save-dev
-npm run sass
-```
+* **Backend**: Built on the lightweight **Flask** framework. Business logic is separated into dedicated modules (e.g., `auth.py`, `summary.py`, `routes.py`).
+* **Frontend**: The user interface uses **HTML5**, **Bootstrap 5** for styling, and **Sass** for creating custom color palettes. Dynamic features like the calendar, forms, and modals are implemented in **vanilla JavaScript (ESM)**.
+* **Database**: The system uses a relational database (likely **MariaDB**, according to `README.md`) managed by the **SQLAlchemy ORM**. Database schema migrations are handled by the **Flask-Migrate** (Alembic) tool.
+* **Authentication**: User sessions are managed by **Flask-Login**. Passwords are securely stored using the **bcrypt** library.
+* **Automation and Deployment**: The deployment process is automated with **GitHub Actions**, which updates the application on the server and restarts the associated `systemd` service after every change in the `master` branch.
