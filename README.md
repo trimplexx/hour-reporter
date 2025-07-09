@@ -1,3 +1,5 @@
+# **URL Demo**: [https://hour-reporter.lkrawczyk.pl/](https://hour-reporter.lkrawczyk.pl/)
+
 The **Hour Reporter** application is an advanced tool for monitoring professional and academic activities. Built with the **Flask** framework in Python and modern frontend technologies, it offers an intuitive interface for recording and analyzing time spent on work and study. The project was designed with ease of use and automation of reporting processes in mind.
 
 
